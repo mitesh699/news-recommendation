@@ -1,1 +1,1 @@
-# News-recommendation
+# Multi-Modal News Recommendation System
