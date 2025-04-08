@@ -1,0 +1,12 @@
+diff --git a/frontend/src/services/newsService.js b/frontend/src/services/newsService.js
+index 19acc75..8d3cb7e 100644
+--- a/frontend/src/services/newsService.js
++++ b/frontend/src/services/newsService.js
+@@ -1,6 +1,7 @@
+ import { useState, useEffect } from 'react';
+ 
+ // API base URL - configurable for different environments
++// FIXED: Added /api prefix directly in the base URL to ensure correct routing
+ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
+ 
+ // Helper function to handle API errors

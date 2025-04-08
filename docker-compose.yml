@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # Frontend application
+  frontend:
+    build:
+      context: .
+      dockerfile: ./deployment/docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8000/api
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  # API service
+  api:
+    build:
+      context: .
+      dockerfile: ./deployment/docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=newsai
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=development_secret_key_change_in_production
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deployment/init-scripts:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=newsai
+    networks:
+      - app-network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
+  # Adminer for database management
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    networks:
+      - app-network
+
+  # Standalone Redis Commander to visualize Redis data
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
